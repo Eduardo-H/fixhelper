@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "fixhelper",
+    "slug": "fixhelper",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "fixhelper"
+}
