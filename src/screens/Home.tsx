@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
+import auth from '@react-native-firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { 
   useTheme,
@@ -25,6 +27,14 @@ export function Home() {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
+  function handleLogout() {
+    auth()
+    .signOut()
+    .catch(error => {
+      return Alert.alert('Logout', 'Unable to logout.');
+    });
+  }
+
   function handleOpenOrderDetails(orderId: string) {
     navigation.navigate('details', { orderId });
   }
@@ -49,7 +59,8 @@ export function Home() {
         <IconButton 
           icon={<SignOut size={26} color={colors.gray[300]} />} 
           rounded="full"
-          _pressed={{ bg: "gray.500" }}          
+          _pressed={{ bg: "gray.500" }}
+          onPress={handleLogout}     
         />
       </HStack>
       

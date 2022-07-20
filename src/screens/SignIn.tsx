@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import auth from '@react-native-firebase/auth';
 import { VStack, Heading, Icon, useTheme } from 'native-base';
 import { Envelope, Key } from 'phosphor-react-native';
 
@@ -11,8 +12,34 @@ import Logo from '../assets/logo_primary.svg';
 export function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [isLoading, setIsLoading] = useState(false);
+  
   const { colors } = useTheme();
+
+  async function handleSignIn() {
+    if (!email || !setEmail) {
+      return Alert.alert('You must inform an e-mail and password.');
+    }
+
+    setIsLoading(true);
+
+    auth()
+    .signInWithEmailAndPassword(email, password)
+    .catch((error) => {
+      setIsLoading(false);
+
+      switch (error.code) {
+        case 'auth/invalid-email':
+          return Alert.alert('Authentication error', 'Invalid e-mail.');
+        case 'auth/user-not-found':
+          return Alert.alert('Authentication error', 'E-mail or password is invalid.');
+        case 'auth/wrong-password':
+          return Alert.alert('Authentication error', 'E-mail or password is invalid.');
+        default:
+          return Alert.alert('Authentication error', 'Error trying to sign in.');
+      }
+    });
+  }
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -38,7 +65,12 @@ export function SignIn() {
           onChangeText={setPassword}
         />
 
-        <Button title="Log in" w="full" />
+        <Button 
+          title="Log in" 
+          w="full" 
+          onPress={handleSignIn} 
+          isLoading={isLoading}
+        />
       </VStack>
     </TouchableWithoutFeedback>
   );
