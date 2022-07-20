@@ -114,3 +114,5 @@ web-build/
 dist/
 
 # @end expo-cli
+google-services.json
+GoogleService-Info.plist

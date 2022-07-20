@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { 
   useTheme,
@@ -19,8 +20,11 @@ import { Order, OrderType } from '../components/Order';
 import { Button } from '../components/Button';
 
 import Logo from '../assets/logo_secondary.svg';
+import { formatDate } from '../utils/firestoreDateFormat';
+import { Loading } from '../components/Loading';
 
 export function Home() {
+  const [isFetchingData, setIsFetchingData] = useState(true);
   const [statusSelected, setStatusSelected] = useState<'open' | 'closed'>('open');
   const [orders, setOrders] = useState<OrderType[]>([]);
 
@@ -42,6 +46,32 @@ export function Home() {
   function handleNewOrder() {
     navigation.navigate('new');
   }
+
+  useEffect(() => {
+    setIsFetchingData(true);
+
+    const subscriber = firestore()
+    .collection('orders')
+    .where('status', '==', statusSelected)
+    .onSnapshot(snapshot => {
+      const data = snapshot.docs.map(doc => {
+        const { patrimony, description, status, created_at } = doc.data();
+
+        return {
+          id: doc.id,
+          patrimony,
+          description,
+          status,
+          when: formatDate(created_at)
+        }
+      });
+
+      setOrders(data);
+      setIsFetchingData(false);
+    });
+
+    return subscriber;
+  }, [statusSelected]);
 
   return (
     <VStack flex={1} pb={6} bg="gray.700">
@@ -91,21 +121,27 @@ export function Home() {
           />
         </HStack>
 
-        <FlatList
-          data={orders}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => <Order data={item} onPress={() => handleOpenOrderDetails(item.id)} />}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 30 }}
-          ListEmptyComponent={() => (
-            <Center>
-              <ChatTeardropText size={40} color={colors.gray[300]} />
-              <Text color="gray.300" fontSize="xl" mt={3} textAlign="center">
-                You have no {statusSelected} orders.
-              </Text>
-            </Center>
-          )}
-        />
+        {
+          isFetchingData
+          ? <Loading />
+          : (
+            <FlatList
+              data={orders}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => <Order data={item} onPress={() => handleOpenOrderDetails(item.id)} />}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 30 }}
+              ListEmptyComponent={() => (
+                <Center>
+                  <ChatTeardropText size={40} color={colors.gray[300]} />
+                  <Text color="gray.300" fontSize="xl" mt={3} textAlign="center">
+                    You have no {statusSelected} orders.
+                  </Text>
+                </Center>
+              )}
+            />
+          )
+        }
 
         <Button title="New order" onPress={handleNewOrder} />
       </VStack>

@@ -1,4 +1,7 @@
-import { Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { useState } from 'react';
+import { Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 import { VStack } from 'native-base';
 
 import { Header } from '../components/Header';
@@ -6,6 +9,36 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 
 export function Register() {
+  const [isSubmiting, setIsSubmiting] = useState(false);
+  const [patrimony, setPatrimony] = useState('');
+  const [description, setDescription] = useState('');
+
+  const navigation = useNavigation();
+
+  function handleRegisterNewOrder() {
+    if (!patrimony || !description) {
+      return Alert.alert('Register', 'Fill all the fields.');
+    }
+
+    setIsSubmiting(true);
+
+    firestore()
+    .collection('orders')
+    .add({
+      patrimony,
+      description,
+      status: 'open',
+      created_at: firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+      navigation.navigate('home');
+    })
+    .catch((error) => {
+      setIsSubmiting(false);
+      return Alert.alert('Error', 'Unable to register the order.');
+    });
+  }
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <VStack flex={1} p={6} pt={0} bg="gray.600">
@@ -14,6 +47,7 @@ export function Register() {
         <Input
           placeholder="Patrimony number"
           mt={4}
+          onChangeText={setPatrimony}
         />
         <Input
           placeholder="Order description"
@@ -21,9 +55,15 @@ export function Register() {
           mt={5}
           multiline
           textAlignVertical="top"
+          onChangeText={setDescription}
         />
 
-        <Button title="Register" mt={5} />
+        <Button 
+          title="Register" 
+          mt={5} 
+          isLoading={isSubmiting}
+          onPress={handleRegisterNewOrder}
+        />
       </VStack>
     </TouchableWithoutFeedback>
   );
