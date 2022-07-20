@@ -1,20 +1,152 @@
-import { useRoute } from '@react-navigation/native';
-import { VStack } from 'native-base';
+import { useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
+import { useTheme, HStack, VStack, Text, ScrollView } from 'native-base';
 
+import { OrderFirestoreDTO } from '../DTOs/OrderFirestoreDTO';
 import { Header } from '../components/Header';
+import { OrderType } from '../components/Order';
+import { formatDate } from '../utils/firestoreDateFormat';
+import { Loading } from '../components/Loading';
+import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass } from 'phosphor-react-native';
+import { CardDetails } from '../components/CardDetails';
+import { Input } from '../components/Input';
+import { Button } from '../components/Button';
+import { Alert } from 'react-native';
 
 interface RouteParams {
   orderId: string;
 }
 
-export function Details() {
-  const route = useRoute();
+type OrderDetails = OrderType & {
+  description: string;
+  solution: string;
+  closed: string;
+}
 
-  const {} = route.params as RouteParams;
+export function Details() {
+  const [solution, setSolution] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [order, setOrder] = useState<OrderDetails>({} as OrderDetails);
+
+  const route = useRoute();
+  const { orderId } = route.params as RouteParams;
+
+  const navigation = useNavigation();
+
+  const { colors } = useTheme();
+
+  function handleCloseOrder() {
+    if (!solution) {
+      return Alert.alert('Order', 'You must inform a solution to close the order.');
+    }
+
+    firestore()
+    .collection<OrderFirestoreDTO>('orders')
+    .doc(orderId)
+    .update({
+      solution,
+      status: 'closed',
+      closed_at: firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+      navigation.navigate('home');
+    })
+    .catch((error) => {
+      return Alert.alert('Error', 'Unable to close this order.');
+    });
+  }
+
+  useEffect(() => {
+    firestore()
+    .collection<OrderFirestoreDTO>('orders')
+    .doc(orderId)
+    .get()
+    .then((doc) => {
+      const { patrimony, description, status, created_at, closed_at, solution } = doc.data();
+
+      const closed = closed_at ? formatDate(closed_at) : null;
+
+      setOrder({
+        id: doc.id,
+        patrimony,
+        description,
+        status,
+        solution,
+        when: formatDate(created_at),
+        closed        
+      });
+
+      setIsLoading(false);
+    });
+  }, []);
+
+  if (isLoading) {
+    return <Loading />
+  }
 
   return (
     <VStack flex={1} bg="gray.700">
       <Header title="Order" px={4} />
+
+      <HStack bg="gray.500" justifyContent="center" p={4}>
+        {
+          order.status === 'closed'
+          ? <CircleWavyCheck size={22} color={colors.green[300]} />
+          : <Hourglass size={22} color={colors.secondary[700]} />
+        }
+
+        <Text
+          fontSize="sm"
+          color={order.status === 'closed' ? colors.green[300] : colors.secondary[700]}
+          ml={2}
+          textTransform="uppercase"
+        >
+          {order.status}
+        </Text>
+      </HStack>
+
+      <ScrollView mx={5} showsVerticalScrollIndicator={false}>
+        <CardDetails
+          title="Patrimony"
+          description={`Patrimony ${order.patrimony}`}
+          icon={DesktopTower}
+        />
+
+        <CardDetails
+          title="Description"
+          description={order.description}
+          icon={ClipboardText}
+          footer={`Registered at ${order.when}`}
+        />
+
+        <CardDetails
+          title="Solution"
+          description={order.solution}
+          icon={CircleWavyCheck}
+          footer={order.closed && `Closed at ${order.closed}`}
+        >
+          {
+            order.status === 'open'
+            && (
+              <Input
+                placeholder="Description of the solution..."
+                h={24}
+                textAlignVertical="top"
+                bg="gray.600"
+                multiline
+                _focus={{ bg: 'gray.600', borderWidth: 1, borderColor: 'primary.700' }}
+                onChangeText={setSolution}
+              />
+            )
+          }
+        </CardDetails>
+
+        {
+          order.status === 'open' 
+          && <Button title="Close order" mt={5} onPress={handleCloseOrder} />
+        }
+      </ScrollView>
     </VStack>
   );
 }
