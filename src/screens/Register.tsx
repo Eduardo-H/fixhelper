@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
-import { VStack } from 'native-base';
+import { Box, Text, useToast, VStack } from 'native-base';
 
 import { useAlert } from '../hooks/useAlert';
 
 import { Header } from '../components/Header';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import { Toast } from '../components/Toast';
 
 export function Register() {
   const [isSubmiting, setIsSubmiting] = useState(false);
@@ -16,6 +17,7 @@ export function Register() {
   const [description, setDescription] = useState('');
 
   const navigation = useNavigation();
+  const toast = useToast();
 
   const { showAlert } = useAlert();
 
@@ -35,6 +37,14 @@ export function Register() {
       created_at: firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
+      toast.show({
+        placement: 'top',
+        render: () => {
+          return (
+            <Toast title="Order successfully registered" type="success" />
+          )
+        }
+      });
       navigation.navigate('home');
     })
     .catch((error) => {

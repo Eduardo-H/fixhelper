@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { useTheme, HStack, VStack, Text, ScrollView } from 'native-base';
+import { useTheme, HStack, VStack, Text, ScrollView, useToast } from 'native-base';
 import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass } from 'phosphor-react-native';
 
 import { formatDate } from '../utils/firestoreDateFormat';
@@ -15,6 +15,7 @@ import { OrderType } from '../components/Order';
 import { CardDetails } from '../components/CardDetails';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import { Toast } from '../components/Toast';
 
 interface RouteParams {
   orderId: string;
@@ -36,6 +37,8 @@ export function Details() {
 
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const toast = useToast();
+
   const { showAlert } = useAlert();
 
   function handleCloseOrder() {
@@ -52,6 +55,14 @@ export function Details() {
       closed_at: firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
+      toast.show({
+        placement: 'top',
+        render: () => {
+          return (
+            <Toast title="Order successfully closed" type="success" />
+          )
+        }
+      });
       navigation.navigate('home');
     })
     .catch((error) => {
