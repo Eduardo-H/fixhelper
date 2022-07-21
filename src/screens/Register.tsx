@@ -54,6 +54,7 @@ export function Register() {
     .then(() => {
       toast.show({
         placement: 'top',
+        duration: 3000,
         render: () => {
           return (
             <Toast title="Order successfully registered" type="success" />

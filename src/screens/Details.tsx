@@ -68,6 +68,7 @@ export function Details() {
     .then(() => {
       toast.show({
         placement: 'top',
+        duration: 3000,
         render: () => {
           return (
             <Toast title="Order successfully closed" type="success" />
@@ -91,6 +92,7 @@ export function Details() {
     .then(() => {
       toast.show({
         placement: 'top',
+        duration: 3000,
         render: () => {
           return (
             <Toast title="Order successfully deleted" type="success" />
