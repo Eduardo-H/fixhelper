@@ -36,5 +36,9 @@ export const THEME = extendTheme({
   },
   sizes: {
     14: 56
+  },
+  config: {
+    useSystemColorMode: false,
+    initialColorMode: 'dark'
   }
 });
