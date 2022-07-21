@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { VStack } from 'native-base';
+
+import { useAlert } from '../hooks/useAlert';
 
 import { Header } from '../components/Header';
 import { Input } from '../components/Input';
@@ -15,9 +17,11 @@ export function Register() {
 
   const navigation = useNavigation();
 
+  const { showAlert } = useAlert();
+
   function handleRegisterNewOrder() {
     if (!patrimony || !description) {
-      return Alert.alert('Register', 'Fill all the fields.');
+      return showAlert('Warning', 'Fill all the fields.');
     }
 
     setIsSubmiting(true);
@@ -35,7 +39,7 @@ export function Register() {
     })
     .catch((error) => {
       setIsSubmiting(false);
-      return Alert.alert('Error', 'Unable to register the order.');
+      return showAlert('Error', 'Unable to register the order.');
     });
   }
 

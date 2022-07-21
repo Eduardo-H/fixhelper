@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import { useTheme, HStack, VStack, Text, ScrollView } from 'native-base';
+import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass } from 'phosphor-react-native';
 
+import { formatDate } from '../utils/firestoreDateFormat';
 import { OrderFirestoreDTO } from '../DTOs/OrderFirestoreDTO';
+
+import { useAlert } from '../hooks/useAlert';
+
+import { Loading } from '../components/Loading';
 import { Header } from '../components/Header';
 import { OrderType } from '../components/Order';
-import { formatDate } from '../utils/firestoreDateFormat';
-import { Loading } from '../components/Loading';
-import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass } from 'phosphor-react-native';
 import { CardDetails } from '../components/CardDetails';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { Alert } from 'react-native';
 
 interface RouteParams {
   orderId: string;
@@ -33,12 +35,12 @@ export function Details() {
   const { orderId } = route.params as RouteParams;
 
   const navigation = useNavigation();
-
   const { colors } = useTheme();
+  const { showAlert } = useAlert();
 
   function handleCloseOrder() {
     if (!solution) {
-      return Alert.alert('Order', 'You must inform a solution to close the order.');
+      return showAlert('Form error', 'You must inform a solution to close the order.');
     }
 
     firestore()
@@ -53,7 +55,7 @@ export function Details() {
       navigation.navigate('home');
     })
     .catch((error) => {
-      return Alert.alert('Error', 'Unable to close this order.');
+      return showAlert('Error', 'Unable to close this order.');
     });
   }
 

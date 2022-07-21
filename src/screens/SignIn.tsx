@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { VStack, Heading, Icon, useTheme } from 'native-base';
 import { Envelope, Key } from 'phosphor-react-native';
@@ -8,6 +8,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 
 import Logo from '../assets/logo_primary.svg';
+import { useAlert } from '../hooks/useAlert';
 
 export function SignIn() {
   const [email, setEmail] = useState('');
@@ -15,10 +16,11 @@ export function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   
   const { colors } = useTheme();
+  const { showAlert } = useAlert();
 
   async function handleSignIn() {
     if (!email || !setEmail) {
-      return Alert.alert('You must inform an e-mail and password.');
+      return showAlert('Form error', 'You must inform an e-mail and password.');
     }
 
     setIsLoading(true);
@@ -30,13 +32,13 @@ export function SignIn() {
 
       switch (error.code) {
         case 'auth/invalid-email':
-          return Alert.alert('Authentication error', 'Invalid e-mail.');
+          return showAlert('Authentication error', 'Invalid e-mail.');
         case 'auth/user-not-found':
-          return Alert.alert('Authentication error', 'E-mail or password is invalid.');
+          return showAlert('Authentication error', 'E-mail or password is invalid.');
         case 'auth/wrong-password':
-          return Alert.alert('Authentication error', 'E-mail or password is invalid.');
+          return showAlert('Authentication error', 'E-mail or password is invalid.');
         default:
-          return Alert.alert('Authentication error', 'Error trying to sign in.');
+          return showAlert('Authentication error', 'Error trying to sign in.');
       }
     });
   }

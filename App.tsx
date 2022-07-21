@@ -6,6 +6,8 @@ import { Routes } from './src/routes';
 import { Loading } from './src/components/Loading';
 
 import { THEME } from './src/styles/theme';
+import { AlertProvider } from './src/hooks/useAlert';
+import { Alert } from './src/components/Alert';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -14,14 +16,18 @@ export default function App() {
   });
 
   return (
-    <NativeBaseProvider theme={THEME}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
-
-      { fontsLoaded ? <Routes /> : <Loading /> }
+    <AlertProvider>
+      <NativeBaseProvider theme={THEME}>
+        <Alert />
+        
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor="transparent"
+          translucent
+        />
+        
+        { fontsLoaded ? <Routes /> : <Loading /> }
     </NativeBaseProvider>
+    </AlertProvider>
   );
 }

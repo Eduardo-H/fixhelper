@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +21,7 @@ import { Button } from '../components/Button';
 import Logo from '../assets/logo_secondary.svg';
 import { formatDate } from '../utils/firestoreDateFormat';
 import { Loading } from '../components/Loading';
+import { useAlert } from '../hooks/useAlert';
 
 export function Home() {
   const [isFetchingData, setIsFetchingData] = useState(true);
@@ -30,12 +30,13 @@ export function Home() {
 
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { showAlert } = useAlert();
 
   function handleLogout() {
     auth()
     .signOut()
     .catch(error => {
-      return Alert.alert('Logout', 'Unable to logout.');
+      return showAlert('Logout', 'Unable to logout.');
     });
   }
 
