@@ -40,7 +40,6 @@ export function SignIn() {
   });
 
   function handleSignIn(data: SignInFormData) {
-    console.log(data);
     setIsLoading(true);
 
     auth()

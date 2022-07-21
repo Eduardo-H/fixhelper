@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { useTheme, HStack, VStack, Text, ScrollView, useToast } from 'native-base';
+import { useTheme, HStack, VStack, Text, ScrollView, useToast, FormControl, WarningOutlineIcon } from 'native-base';
 import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass } from 'phosphor-react-native';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 import { formatDate } from '../utils/firestoreDateFormat';
 import { OrderFirestoreDTO } from '../DTOs/OrderFirestoreDTO';
@@ -27,8 +30,15 @@ type OrderDetails = OrderType & {
   closed: string;
 }
 
+interface CloseOrderFormData {
+  solution: string;
+}
+
+const closeOrderFormSchema = yup.object({
+  solution: yup.string().required('This field is required')
+}).required();
+
 export function Details() {
-  const [solution, setSolution] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [order, setOrder] = useState<OrderDetails>({} as OrderDetails);
 
@@ -41,16 +51,17 @@ export function Details() {
 
   const { showAlert } = useAlert();
 
-  function handleCloseOrder() {
-    if (!solution) {
-      return showAlert('Form error', 'You must inform a solution to close the order.');
-    }
+  const { control, handleSubmit, formState: { errors } } = useForm<CloseOrderFormData>({
+    resolver: yupResolver(closeOrderFormSchema),
+    defaultValues: { solution: '' }
+  });
 
+  function handleCloseOrder(data: CloseOrderFormData) {
     firestore()
     .collection<OrderFirestoreDTO>('orders')
     .doc(orderId)
     .update({
-      solution,
+      solution: data.solution,
       status: 'closed',
       closed_at: firestore.FieldValue.serverTimestamp()
     })
@@ -142,22 +153,44 @@ export function Details() {
           {
             order.status === 'open'
             && (
-              <Input
-                placeholder="Description of the solution..."
-                h={24}
-                textAlignVertical="top"
-                bg="gray.600"
-                multiline
-                _focus={{ bg: 'gray.600', borderWidth: 1, borderColor: 'primary.700' }}
-                onChangeText={setSolution}
-              />
+              <FormControl isRequired>
+                <Controller
+                  name="solution"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <>
+                      <Input
+                        placeholder="Description of the solution..."
+                        h={24}
+                        px={0}
+                        textAlignVertical="top"
+                        bg="gray.600"
+                        multiline
+                        _focus={{ bg: 'gray.600', borderWidth: 1, borderColor: 'primary.700', px: 2 }}
+                        _invalid={{ bg: 'gray.600', borderWidth: 1, borderColor: 'red.500', px: 2 }}
+                        isInvalid={errors.solution !== undefined}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        value={value}
+                      />
+                      <FormControl.ErrorMessage 
+                        leftIcon={<WarningOutlineIcon size="xs" />} 
+                        isInvalid={errors.solution !== undefined}
+                      >
+                        {errors.solution?.message}
+                      </FormControl.ErrorMessage>
+                    </>
+                  )}
+                />
+              </FormControl>
             )
           }
         </CardDetails>
 
         {
           order.status === 'open' 
-          && <Button title="Close order" mt={5} onPress={handleCloseOrder} />
+          && <Button title="Close order" mt={5} onPress={handleSubmit(handleCloseOrder)} />
         }
       </ScrollView>
     </VStack>
