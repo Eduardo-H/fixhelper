@@ -4,7 +4,13 @@ import { AlertDialog, Button } from 'native-base';
 import { useAlert } from '../hooks/useAlert';
 
 export function Alert() {
-  const { isAlertVisible, title, description, closeAlert } = useAlert();
+  const { 
+    isAlertVisible, 
+    title, 
+    description, 
+    actionFunction, 
+    closeAlert 
+  } = useAlert();
 
   const cancelRef = useRef(null);
   
@@ -20,9 +26,24 @@ export function Alert() {
         </AlertDialog.Body>
         <AlertDialog.Footer>
           <Button.Group space={2}>
-            <Button variant="unstyled" colorScheme="coolGray" onPress={closeAlert} ref={cancelRef}>
-              OK
-            </Button>
+            {
+              actionFunction
+              ? (
+                <>
+                  <Button variant="unstyled" colorScheme="coolGray" onPress={closeAlert} ref={cancelRef}>
+                    No
+                  </Button>
+                  <Button colorScheme="danger" px={5} onPress={actionFunction}>
+                    Yes
+                  </Button>
+                </>
+              ) : (
+                <Button variant="unstyled" colorScheme="coolGray" onPress={closeAlert} ref={cancelRef}>
+                  OK
+                </Button>
+              )
+            }
+            
           </Button.Group>
         </AlertDialog.Footer>
       </AlertDialog.Content>

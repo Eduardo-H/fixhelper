@@ -1,12 +1,21 @@
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, Heading, HStack, IconButton, StyledProps, Box } from 'native-base';
-import { CaretLeft } from 'phosphor-react-native';
+import { CaretLeft, IconProps } from 'phosphor-react-native';
 
 interface HeaderProps extends StyledProps {
   title: string;
+  hasRightButton?: boolean;
+  rightButtonIcon?: React.ElementType<IconProps>;
+  handlePressRightButton?: () => void;
 }
 
-export function Header({ title, ...rest }: HeaderProps) {
+export function Header({ 
+  title, 
+  hasRightButton = false,
+  rightButtonIcon: RightIcon, 
+  handlePressRightButton, 
+  ...rest 
+}: HeaderProps) {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
@@ -36,7 +45,18 @@ export function Header({ title, ...rest }: HeaderProps) {
         {title}
       </Heading>
 
-      <Box w={12} />
+      {
+        hasRightButton
+        ? (
+          <IconButton 
+            icon={<RightIcon size={24} color={colors.gray[200]} />}
+            rounded="full"
+            ml={-2}
+            _pressed={{ bg: "gray.500" }}
+            onPress={handlePressRightButton}
+          />
+        ) : <Box w={12} />
+      }
     </HStack>
   );
 }

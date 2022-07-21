@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { useTheme, HStack, VStack, Text, ScrollView, useToast, FormControl, WarningOutlineIcon } from 'native-base';
-import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass } from 'phosphor-react-native';
+import { useTheme, HStack, VStack, Text, ScrollView, useToast, FormControl, WarningOutlineIcon, IconButton } from 'native-base';
+import { CircleWavyCheck, ClipboardText, DesktopTower, Hourglass, Trash } from 'phosphor-react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -49,7 +49,7 @@ export function Details() {
   const { colors } = useTheme();
   const toast = useToast();
 
-  const { showAlert } = useAlert();
+  const { showAlert, closeAlert } = useAlert();
 
   const { control, handleSubmit, formState: { errors } } = useForm<CloseOrderFormData>({
     resolver: yupResolver(closeOrderFormSchema),
@@ -78,6 +78,29 @@ export function Details() {
     })
     .catch((error) => {
       return showAlert('Error', 'Unable to close this order.');
+    });
+  }
+
+  function handleDeleteOrder() {
+    closeAlert();
+
+    firestore()
+    .collection<OrderFirestoreDTO>('orders')
+    .doc(orderId)
+    .delete()
+    .then(() => {
+      toast.show({
+        placement: 'top',
+        render: () => {
+          return (
+            <Toast title="Order successfully deleted" type="success" />
+          )
+        }
+      });
+      navigation.navigate('home');
+    })
+    .catch((error) => {
+      return showAlert('Error', 'Unable to deleted this order.');
     });
   }
 
@@ -111,7 +134,13 @@ export function Details() {
 
   return (
     <VStack flex={1} bg="gray.700">
-      <Header title="Order" px={4} />
+      <Header 
+        title="Order"
+        hasRightButton
+        rightButtonIcon={Trash}
+        handlePressRightButton={() => showAlert('Delete order', 'Are you sure you want to delete this order?', () => handleDeleteOrder)}
+        px={4}
+      />
 
       <HStack bg="gray.500" justifyContent="center" p={4}>
         {

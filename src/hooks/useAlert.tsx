@@ -4,7 +4,8 @@ type AlertContextType = {
   isAlertVisible: boolean;
   title: string;
   description: string;
-  showAlert: (title: string, description: string) => void;
+  actionFunction?: () => {};
+  showAlert: (title: string, description: string, actionFunction?: () => void) => void;
   closeAlert: () => void;
 }
 
@@ -18,10 +19,12 @@ export function AlertProvider({ children }: AlertProviderProps): JSX.Element {
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [actionFunction, setActionFunction] = useState(null);
 
-  function showAlert(title: string, description: string) {
+  function showAlert(title: string, description: string, actionFunction = null) {
     setTitle(title);
     setDescription(description);
+    setActionFunction(actionFunction);
     setIsAlertVisible(true);
   }
 
@@ -35,6 +38,7 @@ export function AlertProvider({ children }: AlertProviderProps): JSX.Element {
         isAlertVisible,
         title, 
         description,
+        actionFunction,
         showAlert,
         closeAlert
       }}
